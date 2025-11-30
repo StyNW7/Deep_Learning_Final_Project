@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
+import So2Card from "./dashboard/so2Card";
 
 export const CityDashboard = ({
   city,
@@ -26,7 +27,7 @@ export const CityDashboard = ({
       const result = await fetchCityData(city);
       const resultApi = await fetchAirQuality();
       setAirData(resultApi);
-      // console.log(airData);
+      console.log(resultApi);
 
       console.log("City:", resultApi.data.city.name);
       console.log("AQI:", resultApi.data.aqi);
@@ -235,41 +236,9 @@ export const CityDashboard = ({
             Pollutant Breakdown
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <Card
-              className="p-4 flex flex-col justify-between hover:shadow-md transition-shadow"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <span className="font-bold text-slate-700">{key}</span>
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    info.status === "Good"
-                      ? "bg-green-500"
-                      : info.status === "Moderate"
-                      ? "bg-yellow-500"
-                      : "bg-red-500"
-                  }`}
-                />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-slate-900">
-                  {airData?.data.iaqi..toFixed(1)}
-                </div>
-                <div className="text-xs text-slate-500">{info.unit}</div>
-              </div>
-              <div className="mt-3 pt-3 border-t border-slate-100">
-                <span
-                  className={`text-xs font-medium ${
-                    info.status === "Good"
-                      ? "text-green-600"
-                      : info.status === "Moderate"
-                      ? "text-yellow-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {info.status}
-                </span>
-              </div>
-            </Card>
+            {airData?.data.iaqi.so2.v && (
+              <So2Card v={airData?.data.iaqi.so2.v}/>
+            )}
           </div>
         </div>
 

@@ -43,11 +43,25 @@ export interface IAQIValue {
   v: number;
 }
 
+// export interface IAQI {
+//   dew: IAQIValue;
+//   h: IAQIValue;
+//   p: IAQIValue;
+//   pm25: IAQIValue;
+//   t: IAQIValue;
+//   w: IAQIValue;
+// }
+
 export interface IAQI {
-  dew: IAQIValue;
+  co: IAQIValue;
   h: IAQIValue;
+  no2: IAQIValue;
+  o3: IAQIValue;
   p: IAQIValue;
+  pm10: IAQIValue;
   pm25: IAQIValue;
+  r: IAQIValue;
+  so2: IAQIValue;
   t: IAQIValue;
   w: IAQIValue;
 }
