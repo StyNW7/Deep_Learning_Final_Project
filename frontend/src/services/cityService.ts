@@ -1,4 +1,4 @@
-import type { AirQualityData, PollutantType } from "@/lib/types";
+import type { AirQualityData, APIResponse, PollutantType } from "@/lib/types";
 
 export const JAKARTA_CITIES = [
   "Jakarta Pusat (Central)",
@@ -106,3 +106,21 @@ export const fetchCityData = async (city: string): Promise<AirQualityData> => {
     }, 800); // Simulate network delay
   });
 };
+
+const API_URL = import.meta.env.VITE_API_URL as string;
+
+export async function fetchAirQuality(): Promise<APIResponse> {
+  try {
+    const response = await fetch(API_URL);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data: APIResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching air quality data:", error);
+    throw error;
+  }
+}

@@ -1,5 +1,5 @@
-import type { AirQualityData, PollutantData, PollutantType } from "@/lib/types";
-import { fetchCityData, getAQIColor, getAQIStatus, getPollutantAdvice } from "@/services/cityService";
+import type { AirQualityData, APIResponse, PollutantData, PollutantType } from "@/lib/types";
+import { fetchAirQuality, fetchCityData, getAQIColor, getAQIStatus, getPollutantAdvice } from "@/services/cityService";
 import { Activity, ChevronLeft, Droplets, Info, Leaf, RefreshCw, ShieldAlert, Thermometer, Wind } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card } from "./ui/card";
@@ -14,6 +14,7 @@ export const CityDashboard = ({
   onBack: () => void;
 }) => {
   const [data, setData] = useState<AirQualityData | null>(null);
+  const [airData, setAirData] = useState<APIResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,6 +24,14 @@ export const CityDashboard = ({
       if (mounted) setLoading(true);
 
       const result = await fetchCityData(city);
+      const resultApi = await fetchAirQuality();
+      setAirData(resultApi);
+      // console.log(airData);
+
+      console.log("City:", resultApi.data.city.name);
+      console.log("AQI:", resultApi.data.aqi);
+      console.log("Dominant Pollutant:", resultApi.data.dominentpol);
+
 
       if (mounted) {
         setData(result);
@@ -68,16 +77,16 @@ export const CityDashboard = ({
             <div>
               <h1 className="text-lg font-bold text-slate-900">{data.city}</h1>
               <p className="text-xs text-slate-500">
-                Updated today at {data.lastUpdated}
+                Updated today at {airData?.data.time.s}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
             <Thermometer className="w-4 h-4" />
-            {data.temperature}°C
+            {airData?.data.iaqi.t.v}°C
             <span className="mx-1 opacity-30">|</span>
             <Droplets className="w-4 h-4" />
-            {data.humidity}%
+            {airData?.data.iaqi.h.v}%
           </div>
         </div>
       </header>
@@ -101,7 +110,8 @@ export const CityDashboard = ({
                     statusColor.split(" ")[0]
                   }`}
                 >
-                  {data.currentAQI}
+                  {/* {data.currentAQI} */}
+                  {airData?.data.aqi}
                 </span>
                 <span className="text-lg text-slate-400 font-medium">
                   US AQI
@@ -225,49 +235,41 @@ export const CityDashboard = ({
             Pollutant Breakdown
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {(
-              Object.entries(data.pollutants) as [
-                PollutantType,
-                PollutantData
-              ][]
-            ).map(([key, info]) => (
-              <Card
-                key={key}
-                className="p-4 flex flex-col justify-between hover:shadow-md transition-shadow"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <span className="font-bold text-slate-700">{key}</span>
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      info.status === "Good"
-                        ? "bg-green-500"
-                        : info.status === "Moderate"
-                        ? "bg-yellow-500"
-                        : "bg-red-500"
-                    }`}
-                  />
+            <Card
+              className="p-4 flex flex-col justify-between hover:shadow-md transition-shadow"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <span className="font-bold text-slate-700">{key}</span>
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    info.status === "Good"
+                      ? "bg-green-500"
+                      : info.status === "Moderate"
+                      ? "bg-yellow-500"
+                      : "bg-red-500"
+                  }`}
+                />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-slate-900">
+                  {airData?.data.iaqi..toFixed(1)}
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-slate-900">
-                    {info.value.toFixed(1)}
-                  </div>
-                  <div className="text-xs text-slate-500">{info.unit}</div>
-                </div>
-                <div className="mt-3 pt-3 border-t border-slate-100">
-                  <span
-                    className={`text-xs font-medium ${
-                      info.status === "Good"
-                        ? "text-green-600"
-                        : info.status === "Moderate"
-                        ? "text-yellow-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {info.status}
-                  </span>
-                </div>
-              </Card>
-            ))}
+                <div className="text-xs text-slate-500">{info.unit}</div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-slate-100">
+                <span
+                  className={`text-xs font-medium ${
+                    info.status === "Good"
+                      ? "text-green-600"
+                      : info.status === "Moderate"
+                      ? "text-yellow-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  {info.status}
+                </span>
+              </div>
+            </Card>
           </div>
         </div>
 
