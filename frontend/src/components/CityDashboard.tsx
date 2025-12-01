@@ -1,4 +1,4 @@
-import type { AirQualityData, APIResponse, PollutantData, PollutantType } from "@/lib/types";
+import type { AirQualityData, APIResponse } from "@/lib/types";
 import { fetchAirQuality, fetchCityData, getAQIColor, getAQIStatus, getPollutantAdvice } from "@/services/cityService";
 import { Activity, ChevronLeft, Droplets, Info, Leaf, RefreshCw, ShieldAlert, Thermometer, Wind } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -6,6 +6,8 @@ import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
 import So2Card from "./dashboard/so2Card";
+import No2Card from "./dashboard/no2Card";
+import CoCard from "./dashboard/coCard";
 
 export const CityDashboard = ({
   city,
@@ -237,7 +239,13 @@ export const CityDashboard = ({
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {airData?.data.iaqi.so2.v && (
-              <So2Card v={airData?.data.iaqi.so2.v}/>
+              <So2Card v={airData?.data.iaqi.so2.v} />
+            )}
+            {airData?.data.iaqi.no2.v && (
+              <No2Card v={airData?.data.iaqi.no2.v} />
+            )}
+            {airData?.data.iaqi.co.v && (
+              <CoCard v={airData?.data.iaqi.co.v} />
             )}
           </div>
         </div>

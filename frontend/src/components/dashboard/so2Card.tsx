@@ -1,36 +1,7 @@
+import { getSo2Background, getSo2Status, getSo2TextColor } from "@/lib/color";
 import { Card } from "../ui/card";
 
 const unit = "ppm";
-
-//less than
-const GOOD_SO2 = 0.02;
-const NORMAL_SO2 = 0.05;
-const BAD_SO2 = 0.15;
-const VERY_BAD_SO2 = 1.0;
-
-export const getSo2Background = (v: number) => {
-  if (v < GOOD_SO2) return "bg-blue-500";
-  if (v <= NORMAL_SO2) return "bg-green-500";
-  if (v <= BAD_SO2) return "bg-yellow-500";
-  if (v <= VERY_BAD_SO2) return "bg-red-500";
-  return "bg-rose-100";
-};
-
-export const getSo2TextColor = (v: number) => {
-  if (v < GOOD_SO2) return "text-blue-600";
-  if (v <= NORMAL_SO2) return "text-green-600";
-  if (v <= BAD_SO2) return "text-yellow-600";
-  if (v <= VERY_BAD_SO2) return "text-red-600";
-  return "text-rose-600";
-};
-
-export const getSo2Status = (v: number) => {
-  if (v < GOOD_SO2) return "Good";
-  if (v <= NORMAL_SO2) return "Normal";
-  if (v <= BAD_SO2) return "Bad";
-  if (v <= VERY_BAD_SO2) return "Very Bad";
-  return "Likely Wrong";
-};
 
 interface So2CardProps {
     v: number;
