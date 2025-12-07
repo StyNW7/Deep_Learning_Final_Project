@@ -1,7 +1,7 @@
 import { JAKARTA_CITIES } from "@/services/cityService";
 import { MapPin, Wind } from "lucide-react";
 
-export const LandingPage = ({
+export const CityList = ({
   onSelectCity,
 }: {
   onSelectCity: (city: string) => void;

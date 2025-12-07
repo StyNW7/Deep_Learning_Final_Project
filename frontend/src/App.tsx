@@ -1,23 +1,16 @@
-import { useState } from 'react'
 import './App.css'
-import { CityDashboard } from './components/CityDashboard';
-import { LandingPage } from './components/LandingPage';
+import { BrowserRouter, Route, Routes } from 'react-router';
+import HomePage from './pages/HomePage';
+import MapPage from './pages/MapPage';
 
 function App() {
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-
-  // Simple router logic
   return (
-    <div className="font-sans text-slate-900">
-      {selectedCity ? (
-        <CityDashboard
-          city={selectedCity}
-          onBack={() => setSelectedCity(null)}
-        />
-      ) : (
-        <LandingPage onSelectCity={setSelectedCity} />
-      )}
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/map" element={<MapPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
