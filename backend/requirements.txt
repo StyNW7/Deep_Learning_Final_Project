@@ -1,2 +1,10 @@
 Flask
 Flask-CORS
+pymongo
+psycopg2
+python-dotenv
+pandas
+torch
+joblib
+numpy
+scikit-learn
