@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
-import type { AirStationData } from "@/lib/types";
 import Map from "@/components/Map";
 
 // Dynamically import Map to avoid SSR issues with Leaflet
@@ -8,32 +7,16 @@ import Map from "@/components/Map";
 
 export default function AirPollutionPage() {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [stationData, setStationData] = useState<AirStationData | null>(null);
 
-  // Mock function to simulate fetching data
   const handleStationSelect = (cityName: string) => {
     setSelectedCity(cityName);
-
-    // Replace this with your actual API call logic
-    const mockData: AirStationData = {
-      city: cityName,
-      co: 0.5,
-      no2: 0.03,
-      o3: 0.04,
-      pm10: Math.floor(Math.random() * 50) + 20, // Random values for demo
-      pm25: Math.floor(Math.random() * 30) + 10,
-      so2: 0.005,
-      forecastPm25: Math.floor(Math.random() * 40) + 10,
-    };
-
-    setStationData(mockData);
   };
 
   return (
     <div className="flex h-screen w-screen flex-col md:flex-row bg-background overflow-hidden">
       {/* Left Sidebar */}
       <aside className="w-full md:w-[400px] h-[40vh] md:h-full shrink-0 z-10 shadow-lg order-2 md:order-1">
-        <Sidebar data={stationData} />
+        <Sidebar selectedCity={selectedCity} />
       </aside>
 
       {/* Main Map Area */}

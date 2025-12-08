@@ -108,10 +108,11 @@ export const fetchCityData = async (city: string): Promise<AirQualityData> => {
 };
 
 const API_URL = import.meta.env.VITE_API_URL as string;
+const API_TOKEN = import.meta.env.VITE_API_TOKEN as string;
 
-export async function fetchAirQuality(): Promise<APIResponse> {
+export async function fetchAirQuality(city: string): Promise<APIResponse> {
   try {
-    const response = await fetch(API_URL);
+    const response = await fetch(`${API_URL}/korea/seoul/${city}/?token=${API_TOKEN}`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);

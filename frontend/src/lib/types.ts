@@ -112,14 +112,13 @@ export interface APIResponse {
 }
 
 //----------------------
-// types/station.ts
-export interface AirStationData {
-  city: string;
-  co: number;
-  no2: number;
-  o3: number;
-  pm10: number;
-  pm25: number;
-  so2: number;
-  forecastPm25: number;
-}
+// export interface AirStationData {
+//   city: string;
+//   co: number;
+//   no2: number;
+//   o3: number;
+//   pm10: number;
+//   pm25: number;
+//   so2: number;
+//   forecastPm25: number;
+// }

@@ -27,7 +27,7 @@ export const CityDashboard = ({
       if (mounted) setLoading(true);
 
       const result = await fetchCityData(city);
-      const resultApi = await fetchAirQuality();
+      const resultApi = await fetchAirQuality(city);
       setAirData(resultApi);
       console.log(resultApi);
 
