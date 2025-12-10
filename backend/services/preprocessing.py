@@ -7,7 +7,7 @@ from pymongo import MongoClient, DESCENDING
 from services.inference import predict_torch
 from dotenv import load_dotenv
 
-scalers = joblib.load("ai_models/seoul_scalers.pkl")
+scalers = joblib.load("ai_models/seoul_scalers_spta.pkl")
 
 load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
@@ -34,6 +34,8 @@ station_code_map = {
     "Gwanak-gu": 121,
     "Seocho-gu": 122,
 }
+
+keep_stations = [101, 102, 105, 106, 107, 109, 111, 112, 113, 119, 120, 121, 122]
 
 def get_df_data():
     #no need to sort
@@ -84,12 +86,11 @@ def get_df_data():
 
     return df
 
-def predict(model, device='cpu'):
+def predict(model, station_code, device='cpu'):
     """
     Reads a CSV containing exactly 312 rows (24 hours * 13 stations).
     columns: Measurement date, Station code, SO2, NO2, O3, CO, PM10, PM2.5
     """
-    model.eval()
 
     df = get_df_data()
     if df.empty:
@@ -115,6 +116,7 @@ def predict(model, device='cpu'):
     # 3. CRITICAL: Sort Data
     # Must match the training order: Sort by Date, then by Station
     df = df.sort_values(by=['Measurement date', 'Station code'])
+    df.to_csv("aqi_data_sorted.csv", index=False, encoding="utf-8")
 
     # 4. Generate Time Features (Sin/Cos)
     df['hour'] = df['Measurement date'].dt.hour
@@ -135,32 +137,43 @@ def predict(model, device='cpu'):
     # We iterate through features exactly like in training
     for feat in feature_cols:
         # Reshape to (Time_Steps, Stations) -> (24, 13)
-        values = df[feat].values.reshape(-1, num_stations)
+        values = df[feat].values.reshape(24, num_stations)
 
-        # Scale if it's a physical pollutant
-        if feat in scalers:
-            values = scalers[feat].transform(values)
+        val_df = pd.DataFrame(values)
+        #val_df = val_df.interpolate(method='linear', limit_direction='both').bfill().ffill()
 
-        processed_features.append(values)
+        # Scale
+        if 'sin' not in feat and 'cos' not in feat:
+            if feat in scalers:
+                values_norm = scalers[feat].transform(val_df.values)
+            else:
+                print(f"Warning: Scaler for {feat} not found. Using raw values.")
+                values_norm = val_df.values
+        else:
+            values_norm = val_df.values
+            
+        processed_features.append(values_norm)
 
     # 6. Stack to Tensor
     # List of (24, 13) arrays -> Stack to (24, 13, 10)
     data_block = np.stack(processed_features, axis=-1)
 
     # Add Batch Dimension -> (1, 24, 13, 10)
-    input_tensor = torch.FloatTensor(data_block).unsqueeze(0).to(device)
+    input_tensor = torch.FloatTensor(data_block).unsqueeze(0)
 
     #maybe use inference.py
     # 7. Predict
-    # with torch.no_grad():
-    #     prediction_scaled = model(input_tensor)
-    prediction_scaled = predict_torch(input_tensor, model)
+    prediction = predict_torch(input_tensor, model)
 
     # 8. Inverse Transform Result
-    # Output is (1, 13, 1) -> Flatten to (1, 13) for scaler
-    pred_flat = prediction_scaled.cpu().numpy().reshape(1, num_stations)
-    pred_final = scalers['PM2.5'].inverse_transform(pred_flat)
+    pm25_values = prediction[0, :, 5].numpy() 
+    pm25_input_for_scaler = pm25_values.reshape(1, 13)
+    pm25_actual = scalers['PM2.5'].inverse_transform(pm25_input_for_scaler)
+    pm25_final = pm25_actual.flatten()
 
     last_time_step = df['Measurement date'].max()
 
-    return pred_final, last_time_step
+    index = keep_stations.index(station_code)
+    pm25_value = pm25_final[index]
+
+    return pm25_value, last_time_step

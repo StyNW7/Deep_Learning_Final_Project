@@ -44,18 +44,20 @@ print("Model loaded successfully.")
 #         result.append(row)
 
 #     return jsonify(result)
-
+#api/predict?station=105
 @app.route("/api/predict")
 def predict_pollutant():
     try:
+        station = request.args.get("station")
+        station = int(station)
         # Pass the globally loaded model
         # The result returns (numpy_array, timestamp)
-        prediction, timestamp = predict(GLOBAL_MODEL)
+        prediction, timestamp = predict(GLOBAL_MODEL, station)
         
         # FIX 3: Formatting for JSON response
         response = {
             "status": "success",
-            "prediction": prediction.tolist(),  # Convert numpy -> list
+            "prediction": float(prediction),  # Convert numpy -> list
             "last_timestamp": str(timestamp)    # Convert pandas timestamp -> string
         }
         return jsonify(response)

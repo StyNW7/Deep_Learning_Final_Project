@@ -3,11 +3,11 @@ import torch.nn as nn
 import math
 import numpy as np
 
-adj_matrix = torch.load("ai_models/adj_matrix.pt")
+adj_matrix = torch.load("ai_models/adj_matrix_spta.pt")
 
 NUM_NODES = 13
 NUM_FEATURES = 10
-TARGET_DIM = 1
+TARGET_DIM = 6
 
 class TGCN(nn.Module):
     def __init__(self, num_nodes, num_features, hidden_dim, output_dim, adj_matrix):
@@ -41,7 +41,7 @@ class TGCN(nn.Module):
 
 def get_model():
     model = TGCN(NUM_NODES, NUM_FEATURES, 64, TARGET_DIM, adj_matrix)
-    model.load_state_dict(torch.load('ai_models/model_weights.pth'))
+    model.load_state_dict(torch.load('ai_models/model_weights_spta.pth'))
     return model
 
 def predict_torch(tensor_input, model):
