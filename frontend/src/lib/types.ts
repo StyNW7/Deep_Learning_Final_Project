@@ -111,6 +111,12 @@ export interface APIResponse {
   data: APIData;
 }
 
+export interface ForecastResponse {
+  status: string;
+  prediction: number;
+  last_timestamp: string;
+}
+
 //----------------------
 // export interface AirStationData {
 //   city: string;

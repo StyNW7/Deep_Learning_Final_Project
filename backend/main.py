@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 # from pymongo import MongoClient, DESCENDING
 
-from services.preprocessing import predict
+from services.preprocessing import predict, station_code_map
 from services.inference import get_model
 
 app = Flask(__name__)
@@ -49,10 +49,10 @@ print("Model loaded successfully.")
 def predict_pollutant():
     try:
         station = request.args.get("station")
-        station = int(station)
+        station_code = station_code_map[station]
         # Pass the globally loaded model
         # The result returns (numpy_array, timestamp)
-        prediction, timestamp = predict(GLOBAL_MODEL, station)
+        prediction, timestamp = predict(GLOBAL_MODEL, station_code)
         
         # FIX 3: Formatting for JSON response
         response = {

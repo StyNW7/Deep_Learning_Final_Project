@@ -1,4 +1,4 @@
-import type { AirQualityData, APIResponse, PollutantType } from "@/lib/types";
+import type { AirQualityData, APIResponse, ForecastResponse, PollutantType } from "@/lib/types";
 
 export const JAKARTA_CITIES = [
   "Jakarta Pusat (Central)",
@@ -109,6 +109,7 @@ export const fetchCityData = async (city: string): Promise<AirQualityData> => {
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 const API_TOKEN = import.meta.env.VITE_API_TOKEN as string;
+const AI_API_URL = import.meta.env.VITE_AI_API_URL as string;
 
 export async function fetchAirQuality(city: string): Promise<APIResponse> {
   try {
@@ -122,6 +123,24 @@ export async function fetchAirQuality(city: string): Promise<APIResponse> {
     return data;
   } catch (error) {
     console.error("Error fetching air quality data:", error);
+    throw error;
+  }
+}
+
+export async function fetchPMForecast(city: string): Promise<ForecastResponse> {
+  try {
+    console.log(city)
+    // const response = await fetch(`${AI_API_URL}predict?station=${city}`);
+    const response = await fetch(`${AI_API_URL}predict?station=${city}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data: ForecastResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching forecast data:", error);
     throw error;
   }
 }

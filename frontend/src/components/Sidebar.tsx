@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { APIResponse } from "@/lib/types";
+import type { APIResponse, ForecastResponse } from "@/lib/types";
 import { Wind, Activity, MapPin, Loader } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
 import { useEffect, useState } from "react";
-import { fetchAirQuality } from "@/services/cityService";
+import { fetchAirQuality, fetchPMForecast } from "@/services/cityService";
 
 interface SidebarProps {
   selectedCity: string | null;
@@ -13,39 +13,45 @@ interface SidebarProps {
 export function Sidebar({ selectedCity }: SidebarProps) {
 
   const [data, setData] = useState<APIResponse | null>(null);
+  const [forecastData, setForecastData] = useState<ForecastResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-      let isCancelled = false;
-  
-      const fetchData = async () => {
-        setLoading(true);
-  
-        if (!selectedCity) {
-          setData(null);
+    let isCancelled = false;
+
+    const fetchData = async () => {
+      setLoading(true);
+
+      if (!selectedCity) {
+        setData(null);
+        setForecastData(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const [resultApi, forecastResult] = await Promise.all([
+          fetchAirQuality(selectedCity),
+          fetchPMForecast(selectedCity),
+        ]);
+
+        if (!isCancelled) {
+          setData(resultApi);
+          setForecastData(forecastResult);
+        }
+      } finally {
+        if (!isCancelled) {
           setLoading(false);
-          return;
         }
-  
-        try {
-          const resultApi = await fetchAirQuality(selectedCity);
-          if (!isCancelled) {
-            setData(resultApi);
-          }
-        } finally {
-          if (!isCancelled) {
-            setLoading(false);
-          }
-        }
-      };
-  
-      fetchData();
-  
-      return () => {
-        isCancelled = true;
-      };
-    }, [selectedCity]);
-  
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedCity]);
 
   if (!selectedCity) {
     return (
@@ -80,7 +86,9 @@ export function Sidebar({ selectedCity }: SidebarProps) {
     <ScrollArea className="h-full w-full bg-background border-r">
       <div className="p-6 space-y-6">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">{data.data.city.name}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {data.data.city.name}
+          </h1>
           <p className="text-sm text-muted-foreground flex items-center gap-2">
             <Wind className="w-4 h-4" /> Real-time Air Quality
           </p>
@@ -97,24 +105,28 @@ export function Sidebar({ selectedCity }: SidebarProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div
-              // className={`text-4xl font-extrabold ${getQualityColor(
-              //   data.forecastPm25
-              // )}`}
-              className={`text-4xl font-extrabold`}
-            >
-              {/* {data.forecastPm25} */}
-              22
-              <span className="text-lg font-normal text-muted-foreground ml-1">
-                µg/m³
-              </span>
-            </div>
+            {forecastData ? (
+              <div className="text-4xl font-extrabold">
+                {forecastData.prediction.toFixed(2)}
+                <span className="text-lg font-normal text-muted-foreground ml-1">
+                  µg/m³
+                </span>
+              </div>
+            ) : (
+              <div className="text-muted-foreground text-sm">
+                No forecast available
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <div className="grid grid-cols-2 gap-4">
           <DetailItem label="PM10" value={data.data.iaqi.pm10.v} unit="µg/m³" />
-          <DetailItem label="PM2.5" value={data.data.iaqi.pm25.v} unit="µg/m³" />
+          <DetailItem
+            label="PM2.5"
+            value={data.data.iaqi.pm25.v}
+            unit="µg/m³"
+          />
           <DetailItem label="NO₂" value={data.data.iaqi.no2.v} unit="ppm" />
           <DetailItem label="O₃" value={data.data.iaqi.o3.v} unit="ppm" />
           <DetailItem label="CO" value={data.data.iaqi.co.v} unit="ppm" />
