@@ -70,9 +70,10 @@ interface Recommendation {
 
 interface CityDetailPageProps {
   cityName?: string;
+  cityImage?: string;
 }
 
-const generateMockData = (cityName: string): CityData => {
+const generateMockData = (cityName: string, cityImage: string): CityData => {
   const pollutants = ['NO2', 'SO2', 'O3', 'CO', 'PM10', 'PM2.5'];
   const hours = Array.from({ length: 8 }, (_, i) => {
     const date = new Date();
@@ -108,17 +109,18 @@ const generateMockData = (cityName: string): CityData => {
   };
 };
 
-const CityDetailPage = ({ cityName = 'Gangnam' }: CityDetailPageProps) => {
+const CityDetailPage = ({ cityName = 'Gangnam', cityImage = "x" }: CityDetailPageProps) => {
+    
   const [data, setData] = useState<CityData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Simulate API call
     setTimeout(() => {
-      setData(generateMockData(cityName));
+      setData(generateMockData(cityName, cityImage));
       setIsLoading(false);
     }, 500);
-  }, [cityName]);
+  }, [cityName, cityImage]);
 
   const getRecommendations = (pollutant: string): Recommendation => {
     const recommendations: Record<string, Recommendation> = {
