@@ -177,3 +177,87 @@ def predict(model, station_code, device='cpu'):
     pm25_value = pm25_final[index]
 
     return pm25_value, last_time_step
+
+def predict_detail(model, station_code, device='cpu'):
+    df = pd.read_csv('aqi_data_sorted.csv')
+    # df = get_df_data()
+    if df.empty:
+        raise ValueError("DataFrame is empty. Check Database connection.")
+
+    required_stations = [101, 102, 105, 106, 107, 109, 111, 112, 113, 119, 120, 121, 122]
+
+    if not all(station in df['Station code'].unique() for station in required_stations):
+        missing = set(required_stations) - set(df['Station code'].unique())
+        raise ValueError(f"Missing data for stations: {missing}")
+
+    df['Measurement date'] = pd.to_datetime(df['Measurement date'])
+
+    unique_times = df['Measurement date'].unique()
+    print(unique_times)
+    if len(unique_times) != 24:
+        raise ValueError(f"Must contain exactly 24 hours of data. Found {len(unique_times)}.")
+
+    df = df.sort_values(by=['Measurement date', 'Station code'])
+    df.to_csv("aqi_data_sorted.csv", index=False, encoding="utf-8")
+
+    df['hour'] = df['Measurement date'].dt.hour
+    df['month'] = df['Measurement date'].dt.month
+
+    df['hour_sin'] = np.sin(2 * np.pi * df['hour'] / 24.0)
+    df['hour_cos'] = np.cos(2 * np.pi * df['hour'] / 24.0)
+    df['month_sin'] = np.sin(2 * np.pi * df['month'] / 12.0)
+    df['month_cos'] = np.cos(2 * np.pi * df['month'] / 12.0)
+
+    feature_cols = ['NO2', 'O3', 'CO', 'SO2', 'PM10', 'PM2.5',
+                    'hour_sin', 'hour_cos', 'month_sin', 'month_cos']
+
+    processed_features = []
+    num_stations = 13
+
+    for feat in feature_cols:
+        values = df[feat].values.reshape(24, num_stations)
+
+        val_df = pd.DataFrame(values)
+
+        if 'sin' not in feat and 'cos' not in feat:
+            if feat in scalers:
+                values_norm = scalers[feat].transform(val_df.values)
+            else:
+                print(f"Warning: Scaler for {feat} not found. Using raw values.")
+                values_norm = val_df.values
+        else:
+            values_norm = val_df.values
+            
+        processed_features.append(values_norm)
+
+    data_block = np.stack(processed_features, axis=-1)
+
+    input_tensor = torch.FloatTensor(data_block).unsqueeze(0)
+
+    prediction = predict_torch(input_tensor, model)
+
+    feature_idx = {
+        'NO2': 0,
+        'O3': 1,
+        'CO': 2,
+        'SO2': 3,
+        'PM2.5': 5
+    }
+
+    results = {}
+    index = keep_stations.index(station_code)
+    max_val = 0
+    dominant_pollutant=""
+    for pollutant, idx in feature_idx.items():
+        values = prediction[0, :, idx].numpy()
+        values_2d = values.reshape(1, 13)
+        actual = scalers[pollutant].inverse_transform(values_2d)
+        res = actual.flatten()
+        if res[index] > max_val and pollutant != 'PM2.5':
+            max_val = res[index]
+            dominant_pollutant = pollutant
+        results[pollutant] = res[index]
+
+    last_time_step = df['Measurement date'].max()
+
+    return results['NO2'], results['O3'], results['CO'], results['SO2'], results['PM2.5'], dominant_pollutant, last_time_step
