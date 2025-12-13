@@ -63,6 +63,7 @@ def predict_pollutant():
         return jsonify(response)
 
     except Exception as e:
+        print(e)
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':

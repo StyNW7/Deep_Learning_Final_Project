@@ -7,7 +7,7 @@ from pymongo import MongoClient, DESCENDING
 from services.inference import predict_torch
 from dotenv import load_dotenv
 
-scalers = joblib.load("ai_models/seoul_scalers_spta.pkl")
+scalers = joblib.load("ai_models/seoul_scalers.pkl")
 
 load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
@@ -91,7 +91,7 @@ def predict(model, station_code, device='cpu'):
     Reads a CSV containing exactly 312 rows (24 hours * 13 stations).
     columns: Measurement date, Station code, SO2, NO2, O3, CO, PM10, PM2.5
     """
-
+    # df = pd.read_csv('aqi_data_sorted.csv')
     df = get_df_data()
     if df.empty:
         raise ValueError("DataFrame is empty. Check Database connection.")
@@ -109,7 +109,7 @@ def predict(model, station_code, device='cpu'):
 
     # Ensure we have exactly 24 unique timestamps
     unique_times = df['Measurement date'].unique()
-    # print(unique_times)
+    print(unique_times)
     if len(unique_times) != 24:
         raise ValueError(f"Must contain exactly 24 hours of data. Found {len(unique_times)}.")
 

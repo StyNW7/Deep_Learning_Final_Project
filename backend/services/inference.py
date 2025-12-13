@@ -3,45 +3,54 @@ import torch.nn as nn
 import math
 import numpy as np
 
-adj_matrix = torch.load("ai_models/adj_matrix_spta.pt")
+adj_matrix = torch.load("ai_models/adj_matrix_best.pt")
 
 NUM_NODES = 13
 NUM_FEATURES = 10
 TARGET_DIM = 6
 
-class TGCN(nn.Module):
-    def __init__(self, num_nodes, num_features, hidden_dim, output_dim, adj_matrix):
-        super(TGCN, self).__init__()
-        self.num_nodes = num_nodes
-        self.hidden_dim = hidden_dim
+class GraphConv(nn.Module):
+    def __init__(self, in_features, out_features, adj_matrix):
+        super(GraphConv, self).__init__()
         self.adj = adj_matrix
-
-        self.gcn_weight = nn.Parameter(torch.FloatTensor(num_features, hidden_dim))
-        self.gcn_bias = nn.Parameter(torch.FloatTensor(hidden_dim))
-
-        self.lstm = nn.LSTM(input_size=hidden_dim, hidden_size=hidden_dim, batch_first=True)
-        self.fc = nn.Linear(hidden_dim, output_dim)
-        self._init_weights()
-
-    def _init_weights(self):
-        stdv = 1.0 / math.sqrt(self.hidden_dim)
-        self.gcn_weight.data.uniform_(-stdv, stdv)
-        self.gcn_bias.data.uniform_(-stdv, stdv)
+        self.fc = nn.Linear(in_features, out_features)
 
     def forward(self, x):
-        batch_size, seq_len, num_nodes, _ = x.size()
-        x_reshaped = x.view(-1, num_nodes, x.size(3))
-        ax = torch.matmul(self.adj, x_reshaped)
-        gcn_out = torch.relu(torch.matmul(ax, self.gcn_weight) + self.gcn_bias)
-        gcn_out = gcn_out.view(batch_size, seq_len, num_nodes, self.hidden_dim)
-        lstm_input = gcn_out.permute(0, 2, 1, 3).contiguous().view(batch_size * num_nodes, seq_len, self.hidden_dim)
-        lstm_out, _ = self.lstm(lstm_input)
-        out = self.fc(lstm_out[:, -1, :])
-        return out.view(batch_size, num_nodes, -1)
+        out = torch.bmm(self.adj.unsqueeze(0).repeat(x.size(0), 1, 1), x)
+        return self.fc(out)
+
+class TGCN(nn.Module):
+    def __init__(self, num_nodes, num_features, hidden_dim, output_dim, adj_matrix, dropout_prob=0.0):
+        super(TGCN, self).__init__()
+        self.gc1 = GraphConv(num_features, hidden_dim, adj_matrix)
+        self.gru = nn.GRU(hidden_dim, hidden_dim, batch_first=True)
+        self.dropout = nn.Dropout(dropout_prob)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+        B, T, N, F = x.shape
+        out = []
+        for t in range(T):
+            xt = x[:, t, :, :]
+            xt = torch.relu(self.gc1(xt))
+            out.append(xt)
+        out = torch.stack(out, dim=1)
+        out = out.transpose(1, 2)
+        out = out.reshape(B * N, T, -1)
+        out, _ = self.gru(out)
+        out = out[:, -1, :]
+        out = self.dropout(out)
+        out = self.fc(out)
+        out = out.view(B, N, -1)
+        return out
 
 def get_model():
-    model = TGCN(NUM_NODES, NUM_FEATURES, 64, TARGET_DIM, adj_matrix)
-    model.load_state_dict(torch.load('ai_models/model_weights_spta.pth'))
+    model = TGCN(NUM_NODES, NUM_FEATURES, 128, TARGET_DIM, adj_matrix, 0.1)
+    state_dict = torch.load(
+        'ai_models/best_tuned_model.pth',
+        map_location=torch.device('cpu')
+    )
+    model.load_state_dict(state_dict)
     return model
 
 def predict_torch(tensor_input, model):
