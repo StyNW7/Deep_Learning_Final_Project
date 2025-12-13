@@ -261,3 +261,121 @@ def predict_detail(model, station_code, device='cpu'):
     last_time_step = df['Measurement date'].max()
 
     return results['NO2'], results['O3'], results['CO'], results['SO2'], results['PM2.5'], dominant_pollutant, last_time_step
+
+def predict_multistep(model, device='cpu', steps=3):
+    input_df = pd.read_csv('aqi_data_sorted.csv')
+    input_df['Measurement date'] = pd.to_datetime(input_df['Measurement date'])
+
+    keep_stations = [101, 102, 105, 106, 107, 109, 111, 112, 113, 119, 120, 121, 122]
+    input_df = input_df[input_df['Station code'].isin(keep_stations)]
+
+    timestamps = np.sort(input_df['Measurement date'].unique())
+    if len(timestamps) < 24:
+        raise ValueError(f"CSV only has {len(timestamps)} hours. Model requires 24h.")
+
+    last_24_hours = timestamps[-24:]
+    input_df = input_df[input_df['Measurement date'].isin(last_24_hours)]
+    
+    last_known_time = pd.to_datetime(last_24_hours[-1])
+
+    time_df = pd.DataFrame({'Measurement date': last_24_hours})
+    time_df['hour'] = time_df['Measurement date'].dt.hour
+    time_df['month'] = time_df['Measurement date'].dt.month
+
+    time_feats = {}
+    time_feats['hour_sin'] = np.sin(2 * np.pi * time_df['hour'] / 24.0).values
+    time_feats['hour_cos'] = np.cos(2 * np.pi * time_df['hour'] / 24.0).values
+    time_feats['month_sin'] = np.sin(2 * np.pi * time_df['month'] / 12.0).values
+    time_feats['month_cos'] = np.cos(2 * np.pi * time_df['month'] / 12.0).values
+
+    feature_cols = ['NO2', 'O3', 'CO', 'SO2', 'PM10', 'PM2.5']
+    time_cols = ['hour_sin', 'hour_cos', 'month_sin', 'month_cos']
+
+    processed_features = []
+
+    for feat in feature_cols:
+        pivot = input_df.pivot_table(index='Measurement date', columns='Station code', values=feat)
+        pivot = pivot.reindex(columns=keep_stations)
+        pivot = pivot.interpolate(method='linear', limit_direction='both').bfill().ffill()
+        values = pivot.values
+        if feat in scalers:
+            values_norm = scalers[feat].transform(values)
+        else:
+            values_norm = values
+        processed_features.append(values_norm)
+
+    num_stations = len(keep_stations)
+    for t_col in time_cols:
+        t_val = time_feats[t_col].reshape(-1, 1)
+        t_block = np.tile(t_val, (1, num_stations))
+        processed_features.append(t_block)
+
+    input_seq = np.stack(processed_features, axis=-1)
+    current_input = torch.FloatTensor(input_seq).unsqueeze(0).to(device)
+
+    model.eval()
+    predictions_storage = []
+
+    with torch.no_grad():
+        for step in range(1, steps + 1):
+            prediction = model(current_input) 
+            predictions_storage.append(prediction)
+
+            if step < steps:
+                next_time = last_known_time + pd.Timedelta(hours=step)
+                
+                next_h = next_time.hour
+                next_m = next_time.month
+                
+                next_time_feats = [
+                    np.sin(2 * np.pi * next_h / 24.0),
+                    np.cos(2 * np.pi * next_h / 24.0),
+                    np.sin(2 * np.pi * next_m / 12.0),
+                    np.cos(2 * np.pi * next_m / 12.0)
+                ]
+                
+                next_time_tensor = torch.FloatTensor(next_time_feats).view(1, 1, 1, 4).to(device)
+                next_time_tensor = next_time_tensor.repeat(1, 1, num_stations, 1)
+
+                pred_unsqueezed = prediction.unsqueeze(1)
+                
+                new_row = torch.cat([pred_unsqueezed, next_time_tensor], dim=-1)
+
+                current_input = torch.cat([current_input[:, 1:, :, :], new_row], dim=1)
+
+    results_dict = {'Station Code': keep_stations}
+
+    for step_idx, raw_pred in enumerate(predictions_storage):
+        hour_label = f"{step_idx + 1}hr"
+        
+        for i, feat_name in enumerate(feature_cols):
+            pred_norm = raw_pred[0, :, i].cpu().numpy().reshape(1, -1)
+
+            if feat_name in scalers:
+                pred_actual = scalers[feat_name].inverse_transform(pred_norm)
+            else:
+                pred_actual = pred_norm
+
+            pred_actual = np.clip(pred_actual, a_min=0.0, a_max=None)
+            
+            col_name = f'Predicted {feat_name} ({hour_label})'
+            results_dict[col_name] = pred_actual.flatten()
+
+    results = pd.DataFrame(results_dict)
+    
+    return results
+
+def get_pm25_for_station(results_df, station_code):
+    station_row = results_df[results_df['Station Code'] == station_code]
+    
+    if station_row.empty:
+        return f"Station {station_code} not found."
+
+    pm25_1hr = station_row['Predicted PM2.5 (1hr)'].values[0]
+    pm25_2hr = station_row['Predicted PM2.5 (2hr)'].values[0]
+    pm25_3hr = station_row['Predicted PM2.5 (3hr)'].values[0]
+    return {
+        "1hr": float(pm25_1hr),
+        "2hr": float(pm25_2hr),
+        "3hr": float(pm25_3hr)
+    }

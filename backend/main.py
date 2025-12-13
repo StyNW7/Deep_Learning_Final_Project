@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from services.preprocessing import predict, station_code_map, predict_detail
+from services.preprocessing import predict, station_code_map, predict_detail, predict_multistep, get_pm25_for_station
 from services.inference import get_model
 
 app = Flask(__name__)
@@ -16,15 +16,12 @@ def predict_pollutant():
     try:
         station = request.args.get("station")
         station_code = station_code_map[station]
-        # Pass the globally loaded model
-        # The result returns (numpy_array, timestamp)
         prediction, timestamp = predict(GLOBAL_MODEL, station_code)
         
-        # FIX 3: Formatting for JSON response
         response = {
             "status": "success",
-            "prediction": float(prediction),  # Convert numpy -> list
-            "last_timestamp": str(timestamp)    # Convert pandas timestamp -> string
+            "prediction": float(prediction),
+            "last_timestamp": str(timestamp)
         }
         return jsonify(response)
 
@@ -50,6 +47,21 @@ def predict_pollutant_detail():
             "dominant_pollutant": str(dominant_pollutant),
             "last_timestamp": str(timestamp)
         }
+        return jsonify(response)
+
+    except Exception as e:
+        print(e)
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+#api/forecasts?station=Mapo-gu
+@app.route("/api/forecasts")
+def forecast_pollution():
+    try:
+        station = request.args.get("station")
+        station_code = station_code_map[station]
+        result = predict_multistep(GLOBAL_MODEL)
+        response = get_pm25_for_station(result, station_code)
+        
         return jsonify(response)
 
     except Exception as e:
