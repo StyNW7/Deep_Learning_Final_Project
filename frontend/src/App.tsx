@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import HomePage from './pages/HomePage';
 import MapPage from './pages/MapPage';
 import LandingPage from './pages/LandingPage';
+import CityDetailPage from './pages/CityDetailPage';
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/map" element={<MapPage />} />
+        <Route path="/city/:id" element={<CityDetailPage />} />
       </Routes>
     </BrowserRouter>
   );
