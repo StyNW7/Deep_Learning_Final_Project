@@ -5,6 +5,8 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
 import { useEffect, useState } from "react";
 import { fetchAirQuality, fetchPMForecast } from "@/services/cityService";
+import { Button } from "./ui/button";
+import { Link } from "react-router";
 
 interface SidebarProps {
   selectedCity: string | null;
@@ -132,6 +134,9 @@ export function Sidebar({ selectedCity }: SidebarProps) {
           <DetailItem label="CO" value={data.data.iaqi.co.v} unit="ppm" />
           <DetailItem label="SO₂" value={data.data.iaqi.so2.v} unit="ppm" />
         </div>
+        <Link to={`/city/${selectedCity}`}>
+          <Button>See Detail</Button>
+        </Link>
       </div>
     </ScrollArea>
   );
