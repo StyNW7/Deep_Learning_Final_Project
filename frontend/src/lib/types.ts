@@ -117,6 +117,24 @@ export interface ForecastResponse {
   last_timestamp: string;
 }
 
+export interface ForecastDetailResponse {
+  status: string;
+  no2_prediction: number;
+  o3_prediction: number;
+  co_prediction: number;
+  so2_prediction: number;
+  pm25_prediction: number;
+  dominant_pollutant: string;
+  last_timestamp: string;
+}
+
+export interface MultistepForecastResponse {
+  pm25_1hr: number;
+  pm25_2hr: number;
+  pm25_3hr: number;
+}
+
+
 //----------------------
 // export interface AirStationData {
 //   city: string;

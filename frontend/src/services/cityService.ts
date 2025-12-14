@@ -1,4 +1,4 @@
-import type { AirQualityData, APIResponse, ForecastResponse, PollutantType } from "@/lib/types";
+import type { AirQualityData, APIResponse, ForecastDetailResponse, ForecastResponse, PollutantType } from "@/lib/types";
 
 export const JAKARTA_CITIES = [
   "Jakarta Pusat (Central)",
@@ -129,7 +129,7 @@ export async function fetchAirQuality(city: string): Promise<APIResponse> {
 
 export async function fetchPMForecast(city: string): Promise<ForecastResponse> {
   try {
-    console.log(city)
+    // console.log(city)
     // const response = await fetch(`${AI_API_URL}predict?station=${city}`);
     const response = await fetch(`${AI_API_URL}predict?station=${city}`);
 
@@ -138,6 +138,42 @@ export async function fetchPMForecast(city: string): Promise<ForecastResponse> {
     }
 
     const data: ForecastResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching forecast data:", error);
+    throw error;
+  }
+}
+
+export async function fetchForecastDetail(
+  city: string
+): Promise<ForecastDetailResponse> {
+  try {
+    const response = await fetch(`${AI_API_URL}predict-detail?station=${city}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data: ForecastDetailResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching forecast data:", error);
+    throw error;
+  }
+}
+
+export async function fetchMultistepForecast(
+  city: string
+): Promise<ForecastDetailResponse> {
+  try {
+    const response = await fetch(`${AI_API_URL}forecasts?station=${city}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data: ForecastDetailResponse = await response.json();
     return data;
   } catch (error) {
     console.error("Error fetching forecast data:", error);
