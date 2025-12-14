@@ -6,6 +6,7 @@ import os
 from pymongo import MongoClient, DESCENDING
 from services.inference import predict_torch
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
 scalers = joblib.load("ai_models/seoul_scalers.pkl")
 
@@ -91,8 +92,8 @@ def predict(model, station_code, device='cpu'):
     Reads a CSV containing exactly 312 rows (24 hours * 13 stations).
     columns: Measurement date, Station code, SO2, NO2, O3, CO, PM10, PM2.5
     """
-    # df = pd.read_csv('aqi_data_sorted.csv')
-    df = get_df_data()
+    df = pd.read_csv('aqi_data_sorted.csv')
+    # df = get_df_data()
     if df.empty:
         raise ValueError("DataFrame is empty. Check Database connection.")
 
@@ -109,7 +110,7 @@ def predict(model, station_code, device='cpu'):
 
     # Ensure we have exactly 24 unique timestamps
     unique_times = df['Measurement date'].unique()
-    print(unique_times)
+    # print(unique_times)
     if len(unique_times) != 24:
         raise ValueError(f"Must contain exactly 24 hours of data. Found {len(unique_times)}.")
 
@@ -370,12 +371,22 @@ def get_pm25_for_station(results_df, station_code):
     
     if station_row.empty:
         return f"Station {station_code} not found."
-
-    pm25_1hr = station_row['Predicted PM2.5 (1hr)'].values[0]
-    pm25_2hr = station_row['Predicted PM2.5 (2hr)'].values[0]
-    pm25_3hr = station_row['Predicted PM2.5 (3hr)'].values[0]
-    return {
-        "1hr": float(pm25_1hr),
-        "2hr": float(pm25_2hr),
-        "3hr": float(pm25_3hr)
-    }
+    
+    # Extract predicted values
+    pm25_values = [
+        ("1hr", station_row['Predicted PM2.5 (1hr)'].values[0]),
+        ("2hr", station_row['Predicted PM2.5 (2hr)'].values[0]),
+        ("3hr", station_row['Predicted PM2.5 (3hr)'].values[0]),
+    ]
+    
+    now = datetime.now()
+    hourly_forecast = []
+    for i, (label, pm25) in enumerate(pm25_values, start=1):
+        forecast_time = now + timedelta(hours=i)
+        hourly_forecast.append({
+            "time": forecast_time.strftime("%Y-%m-%d %H:%M"),
+            "hour24": forecast_time.strftime("%H:%M"),
+            "pm25": round(float(pm25), 2)
+        })
+    
+    return hourly_forecast

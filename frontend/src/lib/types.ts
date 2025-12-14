@@ -129,9 +129,9 @@ export interface ForecastDetailResponse {
 }
 
 export interface MultistepForecastResponse {
-  pm25_1hr: number;
-  pm25_2hr: number;
-  pm25_3hr: number;
+  time: string;
+  hour24: string;
+  pm25: number;
 }
 
 
