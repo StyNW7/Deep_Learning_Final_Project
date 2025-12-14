@@ -263,7 +263,7 @@ def predict_detail(model, station_code, device='cpu'):
 
     return results['NO2'], results['O3'], results['CO'], results['SO2'], results['PM2.5'], dominant_pollutant, last_time_step
 
-def predict_multistep(model, device='cpu', steps=3):
+def predict_multistep(model, device='cpu', steps=6):
     input_df = pd.read_csv('aqi_data_sorted.csv')
     input_df['Measurement date'] = pd.to_datetime(input_df['Measurement date'])
 
@@ -377,6 +377,9 @@ def get_pm25_for_station(results_df, station_code):
         ("1hr", station_row['Predicted PM2.5 (1hr)'].values[0]),
         ("2hr", station_row['Predicted PM2.5 (2hr)'].values[0]),
         ("3hr", station_row['Predicted PM2.5 (3hr)'].values[0]),
+        ("4hr", station_row['Predicted PM2.5 (4hr)'].values[0]),
+        ("5hr", station_row['Predicted PM2.5 (5hr)'].values[0]),
+        ("6hr", station_row['Predicted PM2.5 (6hr)'].values[0]),
     ]
     
     now = datetime.now()

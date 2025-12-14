@@ -1,10 +1,10 @@
-// const pollutantUnits = {
-//   CO: "mg/m3",
-//   NO2: "µg/m³",
-//   O3: "µg/m³",
-//   SO2: "µg/m³",
-//   pm25: "µg/m³",
-// } as const;
+const apiPollutantUnits = {
+  CO: "mg/m3",
+  NO2: "µg/m³",
+  O3: "µg/m³",
+  SO2: "µg/m³",
+} as const;
+
 const pollutantUnits = {
   CO: "ppm",
   NO2: "ppm",
@@ -47,15 +47,15 @@ export function ugm3ToPpm(value: number, pollutant: Pollutant): number {
   return mgm3ToPpm(value / 1000, pollutant);
 }
 
-function ppmToMgm3(ppm: number, mw: number): number {
-  return (ppm * mw) / 24.45;
-}
+// function ppmToMgm3(ppm: number, mw: number): number {
+//   return (ppm * mw) / 24.45;
+// }
 
-// function convertUnit(
+// export function convertUnit(
 //   ppm: number,
 //   pollutant: Pollutant
 // ): { value: number; unit: string } {
-//   const unit = pollutantUnits[pollutant];
+//   const unit = apiPollutantUnits[pollutant];
 
 //   const mgm3 = ppmToMgm3(ppm, molecularWeights[pollutant]);
 
@@ -66,3 +66,19 @@ function ppmToMgm3(ppm: number, mw: number): number {
 //   // µg/m³
 //   return { value: mgm3 * 1000, unit };
 // }
+
+export function convertToPPM(
+  value: number,
+  pollutant: string
+) {
+  const unit = apiPollutantUnits[pollutant as Pollutant];
+
+  // mg/m³ → ppm
+  if (unit === "mg/m3") {
+    return mgm3ToPpm(value, pollutant as Pollutant);
+  }
+
+  // µg/m³ → ppm
+  return ugm3ToPpm(value, pollutant as Pollutant);
+}
+
