@@ -47,7 +47,7 @@ class TGCN(nn.Module):
 def get_model():
     model = TGCN(NUM_NODES, NUM_FEATURES, 128, TARGET_DIM, adj_matrix, 0.1)
     state_dict = torch.load(
-        'ai_models/best_tuned_model.pth',
+        'ai_models/clipped_tuned_model.pth',
         map_location=torch.device('cpu')
     )
     model.load_state_dict(state_dict)

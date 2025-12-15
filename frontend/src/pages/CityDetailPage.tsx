@@ -282,37 +282,68 @@ const CityDetailPage = () => {
               <h2 className="text-xl font-bold">Current Pollutant Levels</h2>
             </div>
 
-            {radarData.map((p) => (
-              <ResponsiveContainer width="100%" height={60}>
-                <BarChart
-                  data={[{ name: p.pollutant.toUpperCase(), value: p.current }]}
-                  layout="vertical"
-                  margin={{ top: 10, right: 10, bottom: 10, left: 0 }}
-                >
-                  <XAxis
-                    type="number"
-                    domain={[0, 120]}
-                    tickFormatter={(v) => `${v}%`}
-                  />
-                  <YAxis type="category" dataKey="name" width={40} />
-                  <Bar
-                    dataKey="value"
-                    fill={p.current > 100 ? "#d32f2f" : "#1976d2"}
-                    barSize={16}
-                  />
-                  <ReferenceLine x={100} stroke="#999" strokeDasharray="3 3" />
-                </BarChart>
-              </ResponsiveContainer>
-            ))}
+            <div className="space-y-4">
+              {radarData.map((p, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-sm">
+                      {p.pollutant.toUpperCase()}
+                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span
+                        className={`text-sm font-bold ${
+                          p.current > 100 ? "text-red-600" : "text-blue-600"
+                        }`}
+                      >
+                        {p.current.toFixed(2)}%
+                      </span>
+                      {p.current > 100 && (
+                        <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                          Above Safe
+                        </span>
+                      )}
+                      {p.current <= 100 && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                          Safe
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-            <div className="flex justify-center space-x-4 mt-4 text-xs">
-              <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 bg-black rounded-full"></div>
-                <span>Current</span>
+                  <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
+                    {/* Safe zone background */}
+                    <div className="absolute inset-0 bg-green-50"></div>
+
+                    {/* Danger zone (beyond 100%) */}
+                    <div className="absolute left-[83.33%] right-0 h-full bg-red-50"></div>
+
+                    {/* Safe limit marker line */}
+                    <div className="absolute left-[83.33%] top-0 bottom-0 w-0.5 bg-gray-400 z-10"></div>
+
+                    {/* Current level bar */}
+                    <div
+                      className={`absolute left-0 top-0 bottom-0 transition-all duration-500 ${
+                        p.current > 100 ? "bg-red-500" : "bg-blue-500"
+                      }`}
+                      style={{ width: `${Math.min(p.current / 1.2, 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-center space-x-6 mt-6 pt-4 border-t border-gray-100">
+              <div className="flex items-center space-x-2 text-xs">
+                <div className="w-4 h-3 bg-blue-500 rounded"></div>
+                <span className="text-gray-600">Safe Level</span>
               </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 border-2 border-gray-400 border-dashed rounded-full"></div>
-                <span>Safe Limit</span>
+              <div className="flex items-center space-x-2 text-xs">
+                <div className="w-4 h-3 bg-red-500 rounded"></div>
+                <span className="text-gray-600">Unsafe Level</span>
+              </div>
+              <div className="flex items-center space-x-2 text-xs">
+                <div className="w-0.5 h-3 bg-gray-400"></div>
+                <span className="text-gray-600">Safe Limit (100%)</span>
               </div>
             </div>
           </div>

@@ -8,7 +8,7 @@ from services.inference import predict_torch
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
-scalers = joblib.load("ai_models/seoul_scalers.pkl")
+scalers = joblib.load("ai_models/seoul_scalers_clipped.pkl")
 
 load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
@@ -92,7 +92,7 @@ def predict(model, station_code, device='cpu'):
     Reads a CSV containing exactly 312 rows (24 hours * 13 stations).
     columns: Measurement date, Station code, SO2, NO2, O3, CO, PM10, PM2.5
     """
-    df = pd.read_csv('aqi_data_sorted.csv')
+    df = pd.read_csv('aqi_data.csv')
     # df = get_df_data()
     if df.empty:
         raise ValueError("DataFrame is empty. Check Database connection.")
@@ -110,7 +110,7 @@ def predict(model, station_code, device='cpu'):
 
     # Ensure we have exactly 24 unique timestamps
     unique_times = df['Measurement date'].unique()
-    # print(unique_times)
+    print(unique_times)
     if len(unique_times) != 24:
         raise ValueError(f"Must contain exactly 24 hours of data. Found {len(unique_times)}.")
 
@@ -180,7 +180,7 @@ def predict(model, station_code, device='cpu'):
     return pm25_value, last_time_step
 
 def predict_detail(model, station_code, device='cpu'):
-    df = pd.read_csv('aqi_data_sorted.csv')
+    df = pd.read_csv('aqi_data.csv')
     # df = get_df_data()
     if df.empty:
         raise ValueError("DataFrame is empty. Check Database connection.")
@@ -264,7 +264,7 @@ def predict_detail(model, station_code, device='cpu'):
     return results['NO2'], results['O3'], results['CO'], results['SO2'], results['PM2.5'], dominant_pollutant, last_time_step
 
 def predict_multistep(model, device='cpu', steps=6):
-    input_df = pd.read_csv('aqi_data_sorted.csv')
+    input_df = pd.read_csv('aqi_data.csv')
     input_df['Measurement date'] = pd.to_datetime(input_df['Measurement date'])
 
     keep_stations = [101, 102, 105, 106, 107, 109, 111, 112, 113, 119, 120, 121, 122]
