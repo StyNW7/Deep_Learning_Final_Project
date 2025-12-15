@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import Map from "@/components/Map";
+import { useNavigate } from "react-router";
 
 // Dynamically import Map to avoid SSR issues with Leaflet
 // const Map = dynamic(() => import("@/components/Map"), { ssr: false });
 
 export default function AirPollutionPage() {
+
+  const navigate = useNavigate()
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
   const handleStationSelect = (cityName: string) => {
@@ -27,11 +30,12 @@ export default function AirPollutionPage() {
         />
 
         {/* Floating Overlay Title */}
-        <div className="absolute bottom-4 left-4 z-500 pointer-events-none">
+        <div className="absolute bottom-4 left-4 z-500 pointer-events-none cursor-pointer" onClick={() => navigate("/")}>
           <div className="bg-background/90 backdrop-blur border shadow-sm rounded-md px-4 py-2 pointer-events-auto">
             <h1 className="font-bold text-sm">Seoul Pollution Forecast</h1>
           </div>
         </div>
+
       </main>
     </div>
   );

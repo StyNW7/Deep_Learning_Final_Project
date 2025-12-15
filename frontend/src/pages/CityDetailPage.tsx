@@ -35,7 +35,7 @@ import {
   fetchMultistepForecast,
 } from "@/services/cityService";
 import PollutantCard from "@/components/cityDetail/PollutantCard";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { POLLUTANT_THRESHOLDS } from "@/lib/color";
 import { convertToPPM } from "@/lib/unit";
 
@@ -58,6 +58,8 @@ function iaqiToRadarDataPoints(iaqi: IAQI): RadarDataPoint[] {
 }
 
 const CityDetailPage = () => {
+
+  const navigate = useNavigate()
   const { cityName } = useParams<{ cityName: string }>();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -147,10 +149,12 @@ const CityDetailPage = () => {
               <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
               <span>Back to Map</span>
             </button>
-            <div className="flex items-center space-x-2">
+
+            <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate("/")}>
               <Wind className="w-5 h-5" />
               <span className="font-bold">AeroSeoul</span>
             </div>
+
           </div>
         </div>
       </header>

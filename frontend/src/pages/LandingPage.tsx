@@ -125,7 +125,7 @@ const LandingPage = () => {
     },
     {
       icon: <TrendingDown className="w-8 h-8" />,
-      title: "7-Day Forecast",
+      title: "6-Hours Forecast",
       description: "Advanced AI-powered predictions to help you plan your week with confidence."
     },
     {
@@ -191,11 +191,11 @@ const LandingPage = () => {
             </div>
             <div className="grid grid-cols-2 gap-4 animate-fadeInRight">
               <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="text-3xl font-bold mb-2">98%</div>
+                <div className="text-3xl font-bold mb-2">85%</div>
                 <div className="text-sm text-gray-600">Accuracy Rate</div>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 mt-8">
-                <div className="text-3xl font-bold mb-2">50+</div>
+                <div className="text-3xl font-bold mb-2">10+</div>
                 <div className="text-sm text-gray-600">Monitoring Stations</div>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
@@ -203,7 +203,7 @@ const LandingPage = () => {
                 <div className="text-sm text-gray-600">Live Updates</div>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 mt-8">
-                <div className="text-3xl font-bold mb-2">7-Day</div>
+                <div className="text-3xl font-bold mb-2">6 Hours</div>
                 <div className="text-sm text-gray-600">Forecasting</div>
               </div>
             </div>
