@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from "react";
 import {
   ArrowLeft,
@@ -17,9 +16,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Bar,
-  ReferenceLine,
-  BarChart,
 } from "recharts";
 import { getRecommendations } from "@/lib/recommendation";
 import type {
@@ -382,7 +378,7 @@ const CityDetailPage = () => {
 
           {/* Trend Insight Card */}
           <div
-            className="lg:col-span-3 bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 shadow-lg border-2 border-gray-100 hover:border-black transition-all duration-300 animate-slideUp"
+            className="lg:col-span-3 bg-linear-to-br from-gray-50 to-white rounded-2xl p-6 shadow-lg border-2 border-gray-100 hover:border-black transition-all duration-300 animate-slideUp"
             style={{ animationDelay: "0.7s" }}
           >
             <div className="flex items-start space-x-4">

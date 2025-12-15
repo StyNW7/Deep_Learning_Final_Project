@@ -148,7 +148,7 @@ export default function CityDetailPage() {
               alt={cityData.name}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex items-end">
+            <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent flex items-end">
               <div className="p-6 md:p-8 w-full">
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">{cityData.name}</h1>
                 <div className="flex items-center gap-4 flex-wrap">
@@ -325,7 +325,7 @@ export default function CityDetailPage() {
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "8px",
                     }}
-                    formatter={(value: any, name: any, props: any) => [`${value} ${props.payload.unit}`, "Level"]}
+                    formatter={(value: any, props: any) => [`${value} ${props.payload.unit}`, "Level"]}
                   />
                   <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                 </BarChart>
