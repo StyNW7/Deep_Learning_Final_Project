@@ -1,7 +1,5 @@
-streamlit
+streamlit>=1.30.0
 pandas
 numpy
-plotly
+plotly>=5.18.0
 requests
-matplotlib
-seaborn
