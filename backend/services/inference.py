@@ -1,9 +1,11 @@
 import torch
 import torch.nn as nn
-import math
 import numpy as np
 
-adj_matrix = torch.load("ai_models/adj_matrix_best.pt")
+adj_matrix = torch.load(
+    "ai_models/station_adj_matrix.pt",
+    map_location=torch.device("cpu")
+)
 
 NUM_NODES = 13
 NUM_FEATURES = 10
@@ -47,7 +49,7 @@ class TGCN(nn.Module):
 def get_model():
     model = TGCN(NUM_NODES, NUM_FEATURES, 128, TARGET_DIM, adj_matrix, 0.1)
     state_dict = torch.load(
-        'ai_models/clipped_tuned_model.pth',
+        'ai_models/tcgn_model.pth',
         map_location=torch.device('cpu')
     )
     model.load_state_dict(state_dict)

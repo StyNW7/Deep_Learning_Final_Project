@@ -8,7 +8,7 @@ from services.inference import predict_torch
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
-scalers = joblib.load("ai_models/seoul_scalers_clipped.pkl")
+scalers = joblib.load("ai_models/feature_scalers.pkl")
 
 load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
