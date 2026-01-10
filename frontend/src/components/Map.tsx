@@ -1,29 +1,34 @@
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-// import L from "leaflet";
+import L from "leaflet";
 import { useEffect } from "react";
 import { cities } from "@/lib/city";
 
-// Leaflet Icon Fix for React
-// import icon from "leaflet/dist/images/marker-icon.png";
-// import iconShadow from "leaflet/dist/images/marker-shadow.png";
+// Custom icon dengan fallback URL
+const createCustomIcon = () => {
+  // Coba beberapa URL sebagai fallback
+  const iconUrls = {
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  };
 
-// const DefaultIcon = L.icon({
-//   iconUrl: typeof icon === "string" ? icon : (icon as any).src,
-//   shadowUrl:
-//     typeof iconShadow === "string" ? iconShadow : (iconShadow as any).src,
-//   iconSize: [25, 41],
-//   iconAnchor: [12, 41],
-// });
+  return L.icon({
+    ...iconUrls,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
+};
 
-// L.Marker.prototype.options.icon = DefaultIcon;
+const defaultIcon = createCustomIcon();
 
 interface MapProps {
   onStationSelect: (cityName: string) => void;
   selectedCity: string | null;
 }
 
-// Component to handle flying to selected city
 function MapController({ selectedCity }: { selectedCity: string | null }) {
   const map = useMap();
 
@@ -40,7 +45,6 @@ function MapController({ selectedCity }: { selectedCity: string | null }) {
 }
 
 export default function Map({ onStationSelect, selectedCity }: MapProps) {
-  // Center on Seoul by default
   const SEOUL_CENTER: [number, number] = [37.5665, 126.978];
 
   return (
@@ -61,6 +65,7 @@ export default function Map({ onStationSelect, selectedCity }: MapProps) {
         <Marker
           key={index}
           position={[city.latitude, city.longitude]}
+          icon={defaultIcon}
           eventHandlers={{
             click: () => onStationSelect(city.name),
           }}
