@@ -338,7 +338,7 @@ if 'selected_pollutant' not in st.session_state:
 def load_static_data():
     """Load static CSV data for historical analysis"""
     try:
-        aqi_data = pd.read_csv('../backend/aqi_data_sorted.csv')
+        aqi_data = pd.read_csv('../backend/aqi_data.csv')
         aqi_data['Measurement date'] = pd.to_datetime(aqi_data['Measurement date'])
         aqi_data['Hour'] = aqi_data['Measurement date'].dt.hour
         aqi_data['Date'] = aqi_data['Measurement date'].dt.date
